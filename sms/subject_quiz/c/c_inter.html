@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>PROGRAMMING IN C - INTERMEDIATE LEVEL</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <br><br>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br><br>
+        <button id="move" class="button-85" role="button"><b> NEXT </b></button>
+        <br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script>
+
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "c_inter.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "0",
+        question: "Which of the following cannot be a variable name in C?",
+        options: ["volatile", "true", "friend", "export"],
+        correct: "true",
+    },
+    {
+        id: "1",
+        question: "What is short int in C programming?",
+        options: [
+            "The basic data type of C",
+            "Qualifier",
+            "Short is the qualifier and int is the basic data type",
+            "All of the mentioned",
+        ],
+        correct: "Short is the qualifier and int is the basic data type",
+    },
+    {
+        id: "2",
+        question: "Which of the following declaration is not supported by C language?",
+        options: ["String str;", "char *str;", "float str = 3e2;", 'Both "String str;" and "float str = 3e2;"'],
+        correct: 'Both "String str;" and "float str = 3e2;"',
+    },
+    {
+        id: "3",
+        question: "Which keyword is used to prevent any changes in the variable within a C program?",
+        options: ["immutable", "mutable", "const", "volatile"],
+        correct: "const",
+    },
+    {
+        id: "4",
+        question: "What is the result of logical or relational expression in C?",
+        options: ["True or False", "0 or 1", "0 if an expression is false and any positive number if an expression is true", "None of the mentioned"],
+        correct: "0 or 1",
+    },
+    {
+        id: "5",
+        question: "Which of the following typecasting is accepted by C language?",
+        options: ["Widening conversions", "Narrowing conversions", "Widening & Narrowing conversions", "None of the mentioned"],
+        correct: "Widening & Narrowing conversions",
+    },
+    {
+        id: "6",
+        question: "Where in C the order of precedence of operators do not exist?",
+        options: ["Within conditional statements, if, else", "Within while, do-while", "Within a macro definition", "None of the mentioned"],
+        correct: "Within a macro definition",
+    },
+    {
+        id: "7",
+        question: "Which of the following is NOT possible with any 2 operators in C?",
+        options: ["Different precedence, same associativity", "Different precedence, different associativity", "Same precedence, different associativity", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "8",
+        question: "What is the meaning of the following C statement?\nprintf(\"%10s\", state);",
+        options: [
+            "10 spaces before the string state is printed",
+            "Print empty spaces if the string state is less than 10 characters",
+            "Print the last 10 characters of the string",
+            "None of the mentioned",
+        ],
+        correct: "10 spaces before the string state is printed",
+    },
+    {
+        id: "9",
+        question: "Comment on the following C statement.\nn = 1;\nprintf(\"%d, %dn\", 3*n, n++);",
+        options: [
+            "Output will be 3, 2",
+            "Output will be 3, 1",
+            "Output will be 6, 1",
+            "Output is compiler dependent",
+        ],
+        correct: "Output will be 3, 1",
+    },
+];
+
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "c_adv.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>

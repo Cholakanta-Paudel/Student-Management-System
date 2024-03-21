@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>PROGRAMMING IN PYTHON - FINAL ASSESSMENT</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <br><br>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br><br>
+        <button id="move" class="button-85" role="button"><b> NEXT </b></button>
+        <br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
+
+
+
+    <script>
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "py_final.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "0",
+        question: "Who developed Python Programming Language?",
+        options: ["Wick van Rossum", "Rasmus Lerdorf", "Guido van Rossum", "Niene Stom"],
+        correct: "Guido van Rossum",
+    },
+    {
+        id: "1",
+        question: "Which type of Programming does Python support?",
+        options: ["Object-oriented programming", "Structured programming", "Functional programming", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "2",
+        question: "Is Python case sensitive when dealing with identifiers?",
+        options: ["No", "Yes", "Machine dependent", "None of the mentioned"],
+        correct: "Yes",
+    },
+    {
+        id: "3",
+        question: "Which of the following is the correct extension of the Python file?",
+        options: [".python", ".pl", ".py", ".p"],
+        correct: ".py",
+    },
+    {
+        id: "4",
+        question: "Is Python code compiled or interpreted?",
+        options: ["Python code is both compiled and interpreted", "Python code is neither compiled nor interpreted", "Python code is only compiled", "Python code is only interpreted"],
+        correct: "Python code is both compiled and interpreted",
+    },
+    {
+        id: "5",
+        question: "All keywords in Python are in _________",
+        options: ["Capitalized", "Lower case", "UPPER CASE", "None of the mentioned"],
+        correct: "None of the mentioned",
+    },
+    {
+        id: "6",
+        question: "What will be the value of the following Python expression?\n4 + 3 % 5",
+        options: ["7", "2", "4", "1"],
+        correct: "7",
+    },
+    {
+        id: "7",
+        question: "Which of the following is used to define a block of code in Python language?",
+        options: ["Indentation", "Key", "Brackets", "All of the mentioned"],
+        correct: "Indentation",
+    },
+    {
+        id: "8",
+        question: "Which keyword is used for function in Python language?",
+        options: ["Function", "def", "Fun", "Define"],
+        correct: "def",
+    },
+    {
+        id: "9",
+        question: "Which of the following character is used to give single-line comments in Python?",
+        options: ["//", "#", "!", "/*"],
+        correct: "#",
+    },
+    {
+        id: "10",
+        question: "Which of the following functions can help us to find the version of Python that we are currently working on?",
+        options: ["sys.version(1)", "sys.version(0)", "sys.version()", "sys.version"],
+        correct: "sys.version()",
+    },
+    {
+        id: "11",
+        question: "Python supports the creation of anonymous functions at runtime, using a construct called __________",
+        options: ["pi", "anonymous", "lambda", "none of the mentioned"],
+        correct: "lambda",
+    },
+    {
+        id: "12",
+        question: "What is the order of precedence in Python?",
+        options: [
+            "Exponential, Parentheses, Multiplication, Division, Addition, Subtraction",
+            "Exponential, Parentheses, Division, Multiplication, Addition, Subtraction",
+            "Parentheses, Exponential, Multiplication, Division, Subtraction, Addition",
+            "Parentheses, Exponential, Multiplication, Division, Addition, Subtraction",
+        ],
+        correct: "Parentheses, Exponential, Multiplication, Division, Addition, Subtraction",
+    },
+    {
+        id: "13",
+        question: "What will be the output of the following Python code snippet    if x=1?\nx<<2",
+        options: ["4", "2", "1", "8"],
+        correct: "4",
+    },
+    {
+        id: "14",
+        question: "What does pip stand for in Python?",
+        options: ["Pip Installs Python", "Pip Installs Packages", "Preferred Installer Program", "All of the mentioned"],
+        correct: "Preferred Installer Program",
+    },
+    {
+        id: "15",
+        question: "Which of the following is the truncation division operator in Python?",
+        options: ["|", "//", "/", "%"],
+        correct: "//",
+    },
+    {
+        id: "16",
+        question: "What will be the output of the following Python code?\nl=[1, 0, 2, 0, 'hello', '', []]\nlist(filter(bool, l))",
+        options: ["[1, 0, 2, ‘hello’, ”, []]", "Error", "[1, 2, ‘hello’]", "[1, 0, 2, 0, ‘hello’, ”, []]"],
+        correct: "[1, 2, ‘hello’]",
+    },
+    {
+        id: "17",
+        question: "Which of the following functions is a built-in function in Python?",
+        options: ["factorial()", "print()", "seed()", "sqrt()"],
+        correct: "print()",
+    },
+    {
+        id: "18",
+        question: "Which of the following is the use of id() function in Python?",
+        options: ["Every object doesn’t have a unique id", "Id returns the identity of the object", "All of the mentioned", "None of the mentioned"],
+        correct: "Id returns the identity of the object",
+    },
+    {
+        id: "19",
+        question: "What will be the output of the following Python function?\nmin(max(False,-3,-4), 2,7)",
+        options: ["-4", "-3", "2", "False"],
+        correct: "False",
+    },
+    {
+        id: "20",
+        question: "Which of the following is not a core data type in Python programming?",
+        options: ["Tuples", "Lists", "Class", "Dictionary"],
+        correct: "Class",
+    },
+    {
+        id: "21",
+        question: "What will be the output of the following Python expression if x=56.236?\nprint('%.2f' % x)",
+        options: ["56.236", "56.23", "56.0000", "56.24"],
+        correct: "56.24",
+    },
+    {
+        id: "22",
+        question: "Which of these is the definition for packages in Python?",
+        options: ["A set of main modules", "A folder of Python modules", "A number of files containing Python definitions and statements", "A set of programs making use of Python modules"],
+        correct: "A folder of Python modules",
+    },
+    {
+        id: "23",
+        question: "What will be the output of the following Python function?\nlen(['hello', 2, 4, 6])",
+        options: ["Error", "6", "4", "3"],
+        correct: "4",
+    },
+    {
+        id: "24",
+        question: "What will be the output of the following Python code snippet?\nfor i in [1, 2, 3, 4][::-1]:\n    print(i, end=' ')",
+        options: ["4 3 2 1", "Error", "1 2 3 4", "None of the mentioned"],
+        correct: "4 3 2 1",
+    },
+    {
+        id: "25",
+        question: "Which one of the following is not a keyword in Python language?",
+        options: ["pass", "eval", "assert", "nonlocal"],
+        correct: "eval",
+    },
+    {
+        id: "26",
+        question: "Which module in the Python standard library parses options received from the command line?",
+        options: ["getarg", "getopt", "main", "os"],
+        correct: "getopt",
+    },
+    {
+        id: "27",
+        question: "What arithmetic operators cannot be used with strings in Python?",
+        options: ["*", "-", "+", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "28",
+        question: "Which of the following statements is used to create an empty set in Python?",
+        options: ["( )", "[ ]", "{ }", "set()"],
+        correct: "set()",
+    },
+    {
+        id: "29",
+        question: "To add a new element to a list we use which Python command?",
+        options: ["list1.addEnd(5)", "list1.addLast(5)", "list1.append(5)", "list1.add(5)"],
+        correct: "list1.append(5)",
+    },
+];
+
+
+
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "ex_basic.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>

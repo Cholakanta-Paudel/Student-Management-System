@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>ADVANCED EXCEL - FINAL ASSESSMENT</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br><br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+        <BR>
+        <button id="move" class="button-85" role="button"><b> YOU HAVE COMPLETED ADVANCED EXCEL. CLICK HERE TO   </b></button>
+        <br>
+        
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
+
+
+
+
+    <script>
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "ex_final.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "0",
+        question: "Which Excel feature allows you to automatically add up the values in a range based on specified criteria?",
+        options: ["Data Validation", "Conditional Formatting", "PivotTables", "Goal Seek"],
+        correct: "PivotTables",
+    },
+    {
+        id: "1",
+        question: "Which function is used to sum a range of cells in Excel?",
+        options: ["MAX", "MIN", "SUM", "AVERAGE"],
+        correct: "SUM",
+    },
+    {
+        id: "2",
+        question: "What symbol is used to denote absolute cell reference in Excel formulas?",
+        options: ["$", "%", "@", "&"],
+        correct: "$",
+    },
+    {
+        id: "3",
+        question: "Which Excel feature is used to protect a worksheet from being modified?",
+        options: ["Lock Cells", "Freeze Panes", "Conditional Formatting", "PivotTables"],
+        correct: "Lock Cells",
+    },
+    {
+        id: "4",
+        question: "What is the keyboard shortcut to paste values only in Excel?",
+        options: ["Ctrl + V", "Ctrl + C", "Ctrl + Shift + V", "Ctrl + Shift + C"],
+        correct: "Ctrl + Shift + V",
+    },
+    {
+        id: "5",
+        question: "Which function is used to find the highest value in a range in Excel?",
+        options: ["AVERAGE", "MAX", "MIN", "SUM"],
+        correct: "MAX",
+    },
+    {
+        id: "6",
+        question: "Which Excel feature allows you to visually represent data using bars, lines, or pie charts?",
+        options: ["Conditional Formatting", "Data Validation", "Charts", "PivotTables"],
+        correct: "Charts",
+    },
+    {
+        id: "7",
+        question: "What does the formula =COUNTA(A1:A10) do in Excel?",
+        options: [
+            "Counts the number of cells containing text in the range A1:A10",
+            "Counts the number of cells containing numbers in the range A1:A10",
+            "Counts the number of non-empty cells in the range A1:A10",
+            "Returns an error",
+        ],
+        correct: "Counts the number of non-empty cells in the range A1:A10",
+    },
+    {
+        id: "8",
+        question: "Which Excel function is used to combine text from multiple cells into one cell?",
+        options: ["CONCATENATE", "SUM", "AVERAGE", "IF"],
+        correct: "CONCATENATE",
+    },
+    {
+        id: "9",
+        question: "What does the function =VLOOKUP(A1, B1:D10, 3, FALSE) do in Excel?",
+        options: [
+            "Looks up the value in cell A1 in the range B1:D10 and returns the corresponding value from the third column",
+            "Adds the values in the range B1:D10 if they match the value in cell A1",
+            "Finds the maximum value in the range B1:D10",
+            "Multiplies the value in cell A1 with the values in the range B1:D10",
+        ],
+        correct: "Looks up the value in cell A1 in the range B1:D10 and returns the corresponding value from the third column",
+    },
+    {
+        id: "10",
+        question: "What is the purpose of the function =SUBTOTAL(9, A1:A10) in Excel?",
+        options: [
+            "Returns the sum of visible cells in the range A1:A10",
+            "Returns the average of visible cells in the range A1:A10",
+            "Returns the maximum value of visible cells in the range A1:A10",
+            "Returns the count of visible cells in the range A1:A10",
+        ],
+        correct: "Returns the count of visible cells in the range A1:A10",
+    },
+
+    {
+        id: "11",
+        question: "Which function is used to round a number up to the nearest integer in Excel?",
+        options: ["ROUNDUP", "ROUNDDOWN", "ROUND", "CEILING"],
+        correct: "ROUNDUP",
+    },
+    {
+        id: "12",
+        question: "What does the function =IFERROR(A1/B1, 'Error') do in Excel?",
+        options: [
+            "Returns the result of dividing cell A1 by cell B1, or 'Error' if there's a division error",
+            "Returns 'Error' if cell A1 is not divisible by cell B1, otherwise returns the result of division",
+            "Returns 'Error' if there's any error in cell A1 or B1, otherwise returns the result of division",
+            "Returns 'Error' if cell B1 is 0, otherwise returns the result of dividing cell A1 by cell B1",
+        ],
+        correct: "Returns the result of dividing cell A1 by cell B1, or 'Error' if there's a division error",
+    },
+    {
+        id: "13",
+        question: "Which Excel feature is used to filter data based on specified criteria?",
+        options: ["Sort & Filter", "Conditional Formatting", "Data Validation", "Goal Seek"],
+        correct: "Sort & Filter",
+    },
+    {
+        id: "14",
+        question: "What is the purpose of the CONCAT function in Excel?",
+        options: [
+            "To combine text from multiple cells into one cell",
+            "To concatenate numbers from different cells into one cell",
+            "To convert text to uppercase",
+            "To remove leading and trailing spaces from text",
+        ],
+        correct: "To combine text from multiple cells into one cell",
+    },
+    {
+        id: "15",
+        question: "Which function is used to count the number of cells that meet multiple criteria in Excel?",
+        options: ["COUNTIFS", "SUMIFS", "AVERAGEIFS", "VLOOKUP"],
+        correct: "COUNTIFS",
+    },
+    {
+        id: "16",
+        question: "What does the formula =INDEX(A1:A10, MATCH('Criteria', B1:B10, 0)) do in Excel?",
+        options: [
+            "Returns the value in the cell corresponding to the row where 'Criteria' is found in column B",
+            "Returns the value in the cell corresponding to the row where 'Criteria' is found in column A",
+            "Returns the row number where 'Criteria' is found in column B",
+            "Returns the row number where 'Criteria' is found in column A",
+        ],
+        correct: "Returns the value in the cell corresponding to the row where 'Criteria' is found in column A",
+    },
+    {
+        id: "17",
+        question: "Which Excel feature is used to identify and correct errors in formulas?",
+        options: ["Trace Precedents", "Trace Dependents", "Error Checking", "Goal Seek"],
+        correct: "Error Checking",
+    },
+    {
+        id: "18",
+        question: "What does the function =TEXT(A1, 'mm/dd/yyyy') do in Excel?",
+        options: [
+            "Converts the value in cell A1 to a text string formatted as 'mm/dd/yyyy'",
+            "Returns the date in cell A1 in the format 'mm/dd/yyyy'",
+            "Converts the text in cell A1 to a date formatted as 'mm/dd/yyyy'",
+            "Returns the serial number of the date in cell A1 formatted as 'mm/dd/yyyy'",
+        ],
+        correct: "Converts the value in cell A1 to a text string formatted as 'mm/dd/yyyy'",
+    },
+    {
+        id: "19",
+        question: "Which Excel function is used to find the position of a specific character within a text string?",
+        options: ["FIND", "SEARCH", "LEN", "MID"],
+        correct: "FIND",
+    },
+    {
+        id: "20",
+        question: "What is the purpose of the function =CHOOSE(index, value1, value2, ...) in Excel?",
+        options: [
+            "Returns the value at the specified position from a list of values",
+            "Returns the value based on a specified condition",
+            "Returns the position of the specified value in a list of values",
+            "Returns an error",
+        ],
+        correct: "Returns the value at the specified position from a list of values",
+    },
+
+    {
+        id: "21",
+        question: "Which function is used to calculate the internal rate of return (IRR) in Excel?",
+        options: ["XIRR", "IRR", "NPV", "RATE"],
+        correct: "IRR",
+    },
+    {
+        id: "22",
+        question: "What does the function =SUMPRODUCT(A1:A10, B1:B10) do in Excel?",
+        options: [
+            "Multiplies corresponding values in two ranges and returns the sum of those products",
+            "Adds the values in range A1:A10 and range B1:B10",
+            "Multiplies the sum of range A1:A10 by the sum of range B1:B10",
+            "Returns an error",
+        ],
+        correct: "Multiplies corresponding values in two ranges and returns the sum of those products",
+    },
+    {
+        id: "23",
+        question: "Which Excel feature is used to create a scenario where you can change multiple input values to see the resulting changes in output values?",
+        options: ["Data Tables", "Solver", "Scenario Manager", "Goal Seek"],
+        correct: "Scenario Manager",
+    },
+    {
+        id: "24",
+        question: "What is the purpose of the function =TRANSPOSE(A1:D4) in Excel?",
+        options: [
+            "Converts the vertical range A1:D1 into a horizontal range",
+            "Converts the horizontal range A1:D1 into a vertical range",
+            "Swaps the rows and columns of the range A1:D4",
+            "Returns an error",
+        ],
+        correct: "Swaps the rows and columns of the range A1:D4",
+    },
+    {
+        id: "25",
+        question: "Which Excel function is used to calculate the cumulative distribution function (CDF) of a value in a normal distribution?",
+        options: ["NORM.S.DIST", "NORM.DIST", "NORM.INV", "NORM.S.INV"],
+        correct: "NORM.DIST",
+    },
+    {
+        id: "26",
+        question: "What does the formula =INDEX(A1:E10, MATCH(MAX(A1:A10), A1:A10, 0), MATCH(MAX(A1:E1), A1:E1, 0)) do in Excel?",
+        options: [
+            "Returns the maximum value from the range A1:A10",
+            "Returns the value in the cell at the intersection of the row with the maximum value in column A and the column with the maximum value in row 1",
+            "Returns the sum of the maximum values in rows and columns",
+            "Returns an error",
+        ],
+        correct: "Returns the value in the cell at the intersection of the row with the maximum value in column A and the column with the maximum value in row 1",
+    },
+    {
+        id: "27",
+        question: "Which Excel feature is used to create a dynamic chart that updates automatically when new data is added?",
+        options: ["PivotCharts", "Sparklines", "Data Validation", "Dynamic Range"],
+        correct: "Sparklines",
+    },
+    {
+        id: "28",
+        question: "What does the function =XNPV(rate, values, dates) do in Excel?",
+        options: [
+            "Calculates the net present value of cash flows that occur at irregular intervals",
+            "Calculates the net present value of cash flows that occur at regular intervals",
+            "Calculates the net profit of an investment",
+            "Returns an error",
+        ],
+        correct: "Calculates the net present value of cash flows that occur at irregular intervals",
+    },
+    {
+        id: "29",
+        question: "Which Excel function is used to calculate the cumulative sum of values in a range?",
+        options: ["SUM", "SUMIF", "SUMIFS", "CUMSUM"],
+        correct: "CUMSUM",
+    },
+    
+];
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "c_inter.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>

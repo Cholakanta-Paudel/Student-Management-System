@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>PROGRAMMING IN C - FINAL ASSESSMENT</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <br><br>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+        <BR><BR>
+        <button id="move" class="button-85" role="button"><b> YOU HAVE COMPLETED C PROGRAMMING. CLICK HERE TO LEARN PYTHON</b></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script>
+
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "c_final.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "0",
+        question: "Which of the following is not a valid C variable name?",
+        options: ["int number;", "float rate;", "int variable_count;", "int $main;"],
+        correct: "int $main;",
+    },
+    {
+        id: "1",
+        question: "All keywords in C are in ____________",
+        options: ["LowerCase letters", "UpperCase letters", "CamelCase letters", "None of the mentioned"],
+        correct: "LowerCase letters",
+    },
+    {
+        id: "2",
+        question: "Which of the following declaration is not supported by C language?",
+        options: ["String str;", "char *str;", "float str = 3e2;", 'Both "String str;" and "float str = 3e2;"'],
+        correct: 'Both "String str;" and "float str = 3e2;"',
+    },
+    {
+        id: "3",
+        question: "Where in C the order of precedence of operators do not exist?",
+        options: ["Within conditional statements, if, else", "Within while, do-while", "Within a macro definition", "None of the Above"],
+        correct: "None of the Above",
+    },
+    {
+        id: "4",
+        question: "What is an example of iteration in C?",
+        options: ["for", "while", "do-while", "All the above"],
+        correct: "All the above",
+    },
+    {
+        id: "5",
+        question: "Functions can return enumeration constants in C?",
+        options: ["true", "false", "depends on the compiler", "depends on the standard"],
+        correct: "true",
+    },
+    {
+        id: "6",
+        question: "Functions in C Language are always _________",
+        options: ["Internal", "External", "Both Internal and External", "External and Internal are not valid terms for functions"],
+        correct: "External",
+    },
+    {
+        id: "7",
+        question: "What is #include <stdio.h>?",
+        options: ["Preprocessor directive", "Inclusion directive", "File inclusion directive", "None of the above"],
+        correct: "Preprocessor directive",
+    },
+    {
+        id: "8",
+        question: "What is the sizeof(char) in a 32-bit C compiler?",
+        options: ["1 bit", "2 bits", "1 Byte", "2 Bytes"],
+        correct: "1 Byte",
+    },
+    {
+        id: "9",
+        question: "scanf() is a predefined function in______header file.",
+        options: ["stdlib.h", "ctype.h", "stdio.h", "stdarg.h"],
+        correct: "stdio.h",
+    },
+    {
+        id: "10",
+        question: "Which of the following cannot be a variable name in C?",
+        options: ["volatile", "true", "friend", "export"],
+        correct: "true",
+    },
+    {
+        id: "11",
+        question: "What is short int in C programming?",
+        options: [
+            "The basic data type of C",
+            "Qualifier",
+            "Short is the qualifier and int is the basic data type",
+            "All of the mentioned",
+        ],
+        correct: "Short is the qualifier and int is the basic data type",
+    },
+    {
+        id: "12",
+        question: "Which keyword is used to prevent any changes in the variable within a C program?",
+        options: ["immutable", "mutable", "const", "volatile"],
+        correct: "const",
+    },
+    {
+        id: "13",
+        question: "What is the result of logical or relational expression in C?",
+        options: ["True or False", "0 or 1", "0 if an expression is false and any positive number if an expression is true", "None of the mentioned"],
+        correct: "0 or 1",
+    },
+    {
+        id: "14",
+        question: "Which of the following typecasting is accepted by C language?",
+        options: ["Widening conversions", "Narrowing conversions", "Widening & Narrowing conversions", "None of the mentioned"],
+        correct: "Widening & Narrowing conversions",
+    },
+    {
+        id: "15",
+        question: "Where in C the order of precedence of operators do not exist?",
+        options: ["Within conditional statements, if, else", "Within while, do-while", "Within a macro definition", "None of the mentioned"],
+        correct: "Within a macro definition",
+    },
+    {
+        id: "16",
+        question: "Which of the following is NOT possible with any 2 operators in C?",
+        options: ["Different precedence, same associativity", "Different precedence, different associativity", "Same precedence, different associativity", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "17",
+        question: "What is the meaning of the following C statement?\nprintf(\"%10s\", state);",
+        options: [
+            "10 spaces before the string state is printed",
+            "Print empty spaces if the string state is less than 10 characters",
+            "Print the last 10 characters of the string",
+            "None of the mentioned",
+        ],
+        correct: "10 spaces before the string state is printed",
+    },
+    {
+        id: "18",
+        question: "Comment on the following C statement.\nn = 1;\nprintf(\"%d, %dn\", 3*n, n++);",
+        options: [
+            "Output will be 3, 2",
+            "Output will be 3, 1",
+            "Output will be 6, 1",
+            "Output is compiler dependent",
+        ],
+        correct: "Output will be 3, 1",
+    },
+    {
+        id: "19",
+        question: "Functions in C Language are always _________",
+        options: ["Internal", "External", "Both Internal and External", "External and Internal are not valid terms for functions"],
+        correct: "Both Internal and External",
+    },
+    {
+        id: "20",
+        question: "Which of the following is not accepted in C?",
+        options: [
+            "static a = 10; //static as",
+            "static int func (int); //parameter as static",
+            "static static int a; //a static variable prefixed with static",
+            "all of the mentioned",
+        ],
+        correct: "all of the mentioned",
+    },
+    {
+        id: "21",
+        question: "Property which allows producing different executable for different platforms in C is called?",
+        options: ["File inclusion", "Selective inclusion", "Conditional compilation", "Recursive macros"],
+        correct: "Conditional compilation",
+    },
+    {
+        id: "22",
+        question: "What is #include <stdio.h>?",
+        options: ["Preprocessor directive", "Inclusion directive", "File inclusion directive", "None of the mentioned"],
+        correct: "File inclusion directive",
+    },
+    {
+        id: "23",
+        question: "C preprocessors can have compiler-specific features.",
+        options: ["True", "False", "Depends on the standard", "Depends on the platform"],
+        correct: "True",
+    },
+    {
+        id: "24",
+        question: "Which of the following are C preprocessors?",
+        options: ["#ifdef", "#define", "#endif", "all of the mentioned"],
+        correct: "all of the mentioned",
+    },
+    {
+        id: "25",
+        question: "The C-preprocessors are specified with _________ symbol.",
+        options: ["#", "$", "''", "&"],
+        correct: "#",
+    },
+    {
+        id: "26",
+        question: "How many numbers of pointer (*) does C have against a pointer variable declaration?",
+        options: ["7", "127", "255", "No limits"],
+        correct: "No limits",
+    },
+    {
+        id: "27",
+        question: "Which of the following is not possible statically in C language?",
+        options: ["Jagged Array", "Rectangular Array", "Cuboidal Array", "Multidimensional Array"],
+        correct: "Jagged Array",
+    },
+    {
+        id: "28",
+        question: "Which of the following is not an operator in C?",
+        options: [",", "sizeof()", "~", "None of the mentioned"],
+        correct: "None of the mentioned",
+    },
+    {
+        id: "29",
+        question: "What are the elements present in the array of the following C code?\nint array[5] = {5};",
+        options: [
+            "5, 5, 5, 5, 5",
+            "5, 0, 0, 0, 0",
+            "5, (garbage), (garbage), (garbage), (garbage)",
+            "(garbage), (garbage), (garbage), (garbage), 5",
+        ],
+        correct: "5, 0, 0, 0, 0",
+    },
+];
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "py_basic.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>

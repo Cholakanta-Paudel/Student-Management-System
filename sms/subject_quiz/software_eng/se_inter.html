@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>SOFTWARE ENGINEERING - INTERMEDIATE LEVEL</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <br><br>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br><br>
+        <button id="move" class="button-85" role="button"><b> NEXT </b></button>
+        <br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
+
+
+
+
+    <script>
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "se_inter.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "20",
+        question: "__________ software development team has no permanent leader.",
+        options: ["Controlled Centralized (CC)", "Controlled decentralized (CD)", "Democratic decentralized (DD)", "None of the mentioned"],
+        correct: "Democratic decentralized (DD)",
+    },
+    {
+        id: "11",
+        question: "Why do bugs and failures occur in software?",
+        options: [
+            "Because of Developers",
+            "Because of companies",
+            "Because of both companies and Developers",
+            "None of the mentioned",
+        ],
+        correct: "Because of both companies and Developers",
+    },
+    {
+        id: "12",
+        question: "Attributes of good software is ____________",
+        options: [
+            "Development",
+            "Maintainability & functionality",
+            "Functionality",
+            "Maintainability",
+        ],
+        correct: "Maintainability & functionality",
+    },
+    {
+        id: "14",
+        question: "What does SDLC stand for?",
+        options: [
+            "System Design Life Cycle",
+            "Software Design Life Cycle",
+            "Software Development Life Cycle",
+            "System Development Life cycle",
+        ],
+        correct: "Software Development Life Cycle",
+    },
+    {
+        id: "15",
+        question: "Who proposed the spiral model?",
+        options: ["Barry Boehm", "Pressman", "Royce", "IBM"],
+        correct: "Barry Boehm",
+    },
+    {
+        id: "16",
+        question: "______________ is not among the eight principles followed by the Software Code of Ethics and Professional Practice.",
+        options: ["PRODUCT", "ENVIRONMENT", "PUBLIC", "PROFESSION"],
+        correct: "ENVIRONMENT",
+    },
+    {
+        id: "17",
+        question: "Which of the following are CASE tools?",
+        options: ["Central Repository", "Integrated Case Tools", "Upper Case Tools", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "19",
+        question: "Software patch is defined as ______________",
+        options: ["Daily or routine Fix", "Required or Critical Fix", "Emergency Fix", "None of the mentioned"],
+        correct: "Emergency Fix",
+    },
+    
+    {
+        id: "22",
+        question: "_________ is not a fundamental activity for software processes in software development.",
+        options: ["Evolution", "Design and implementation", "Validation", "Verification"],
+        correct: "Verification",
+    },
+    {
+        id: "23",
+        question: "What are agile manifesto principles?",
+        options: [
+            "Customer satisfaction",
+            "Face-to-face communication within a development team",
+            "Changes in requirements are welcome",
+            "All of the mentioned",
+        ],
+        correct: "All of the mentioned",
+    },
+    // ... add more questions if needed
+];
+
+
+
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "se_adv.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>

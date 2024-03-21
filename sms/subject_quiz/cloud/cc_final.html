@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="c.css">
+
+    <title>QUIZ WEBSITE</title>
+</head>
+
+<body>
+    <div class="start-screen">
+        <h1>CLOUD COMPUTING - FINAL ASSESSMENT</h1>
+        <button id="start-button">LETS START</button>
+    </div>
+    <div id="display-container">
+        <div class="header">
+            <div class="number-of-count">
+                <span class="number-of-question">1 of 3 questions</span>
+            </div>
+            <div class="timer-div">
+                <img src="https://uxwing.com/wp-content/themes/uxwing/download/time-and-date/stopwatch-icon.png"
+                    width="20px" />
+                <span class="time-left">10s</span>
+            </div>
+        </div>
+        <div id="container">
+            <!-- questions and options will be displayed here -->
+        </div>
+        <button id="next-button">Next</button>
+    </div>
+    <div class="score-container hide">
+        <div id="user-score">Demo Score</div>
+        <br><br>
+        <button id="restart"><b>TRY AGAIN</b></button>
+        <br>
+        <button id="back" class="button-85" role="button"><b> BACK </b></button>
+        <BR><BR>
+        <button id="move" class="button-85" role="button"><b> YOU HAVE COMPLETED CLOUD COMPUTING. CLICK HERE TO LEARN SOFTWARE ENGINEERING</b></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
+
+
+
+
+    <script>
+function sendScoreToPHP(score) {
+    $.ajax({
+        type: "POST",
+        url: "cc_final.php", // Replace with the correct path to your PHP file
+        data: { userScore: score },
+        success: function (response) {
+            console.log(response); // Output the response from PHP (for debugging)
+        },
+        error: function (error) {
+            console.error("Error sending score to PHP: ", error);
+        }
+    });
+}
+        //References
+let timeLeft = document.querySelector(".time-left");
+let quizContainer = document.getElementById("container");
+let nextBtn = document.getElementById("next-button");
+let countOfQuestion = document.querySelector(".number-of-question");
+let displayContainer = document.getElementById("display-container");
+let scoreContainer = document.querySelector(".score-container");
+let restart = document.getElementById("restart");
+let backBtn = document.getElementById("back");
+let moveBtn = document.getElementById("move");
+let userScore = document.getElementById("user-score");
+let startScreen = document.querySelector(".start-screen");
+let startButton = document.getElementById("start-button");
+let questionCount;
+let scoreCount = 0;
+let count = 11;
+let countdown;
+
+const quizArray = [
+    {
+        id: "0",
+        question: "Which of the following model attempts to categorize a cloud network based on four dimensional factors?",
+        options: ["Cloud Cube", "Cloud Square", "Cloud Service", "All of the mentioned"],
+        correct: "Cloud Cube",
+    },
+    {
+        id: "1",
+        question: "What is Cloud Computing?",
+        options: [
+            "Cloud Computing means providing services like storage, servers, database, networking, etc",
+            "Cloud Computing means storing data in a database",
+            "Cloud Computing is a tool used to create an application",
+            "None of the mentioned",
+        ],
+        correct: "Cloud Computing means providing services like storage, servers, database, networking, etc",
+    },
+    {
+        id: "2",
+        question: "Who is the father of cloud computing?",
+        options: ["Sharon B. Codd", "Edgar Frank Codd", "J.C.R. Licklider", "Charles Bachman"],
+        correct: "J.C.R. Licklider",
+    },
+    {
+        id: "3",
+        question: "Which of the following is not a type of cloud server?",
+        options: ["Public Cloud Servers", "Private Cloud Servers", "Dedicated Cloud Servers", "Merged Cloud Servers"],
+        correct: "Merged Cloud Servers",
+    },
+    {
+        id: "4",
+        question: "Which of the following are the features of cloud computing?",
+        options: ["Security", "Availability", "Large Network Access", "All of the mentioned"],
+        correct: "All of the mentioned",
+    },
+    {
+        id: "5",
+        question: "Which of the following is a type of cloud computing service?",
+        options: ["Service-as-a-Software (SaaS)", "Software-and-a-Server (SaaS)", "Software-as-a-Service (SaaS)", "Software-as-a-Server (SaaS)"],
+        correct: "Software-as-a-Service (SaaS)",
+    },
+    {
+        id: "6",
+        question: "Which of the following is the application of cloud computing?",
+        options: ["Adobe", "Paypal", "Google G Suite", "All of the above"],
+        correct: "All of the above",
+    },
+    {
+        id: "7",
+        question: "Which of the following is an example of the cloud?",
+        options: ["Amazon Web Services (AWS)", "Dropbox", "Cisco WebEx", "All of the above"],
+        correct: "All of the above",
+    },
+    {
+        id: "8",
+        question: "Applications and services that run on a distributed network using virtualized resources is known as ___________",
+        options: ["Parallel computing", "Soft computing", "Distributed computing", "Cloud computing"],
+        correct: "Cloud computing",
+    },
+    {
+        id: "9",
+        question: "Which architectural layer is used as a backend in cloud computing?",
+        options: ["cloud", "soft", "client", "all of the mentioned"],
+        correct: "cloud",
+    },
+    {
+        id: "10",
+        question: "All cloud computing applications suffer from the inherent _______ that is intrinsic in their WAN connectivity.",
+        options: ["noise", "propagation", "latency", "all of the mentioned"],
+        correct: "latency",
+    },
+    {
+        id: "11",
+        question: "Which of the following architectural standards is working with the cloud computing industry?",
+        options: ["Web-application frameworks", "Service-oriented architecture", "Standardized Web services", "All of the mentioned"],
+        correct: "Service-oriented architecture",
+    },
+    {
+        id: "12",
+        question: "Which of the following is the correct statement?",
+        options: [
+            "Cloud computing presents new opportunities to users and developers",
+            "Service Level Agreements (SLAs) are a small aspect of cloud computing",
+            "Cloud computing does not have an impact on software licensing",
+            "All of the mentioned",
+        ],
+        correct: "Cloud computing presents new opportunities to users and developers",
+    },
+    {
+        id: "13",
+        question: "Cloud computing is a concept that involves pooling physical resources and offering them as which sort of resource?",
+        options: ["cloud", "real", "virtual", "none of the mentioned"],
+        correct: "virtual",
+    },
+    {
+        id: "14",
+        question: "Which of the following is the Cloud Platform provided by Amazon?",
+        options: ["AWS", "Cloudera", "Azure", "All of the mentioned"],
+        correct: "AWS",
+    },
+    {
+        id: "15",
+        question: "Into which expenditures does Cloud computing shift capital expenditures?",
+        options: ["local", "operating", "service", "none of the mentioned"],
+        correct: "operating",
+    },
+    {
+        id: "16",
+        question: "Which of the following is the most essential element in cloud computing by CSA?",
+        options: ["Virtualization", "Multi-tenancy", "Identity and access management", "All of the mentioned"],
+        correct: "Multi-tenancy",
+    },
+    {
+        id: "17",
+        question: "Which of the following monitors the performance of the major cloud-based services in real time in Cloud Commons?",
+        options: ["CloudWatch", "CloudSensor", "CloudMetrics", "All of the mentioned"],
+        correct: "CloudSensor",
+    },
+    {
+        id: "18",
+        question: "Which of the following model consists of the service that you can access on a cloud computing platform?",
+        options: ["Deployment", "Service", "Application", "None of the mentioned"],
+        correct: "Service",
+    },
+    {
+        id: "19",
+        question: "Which of the following is the most important area of concern in cloud computing?",
+        options: ["Scalability", "Storage", "Security", "All of the mentioned"],
+        correct: "Security",
+    },
+    {
+        id: "20",
+        question: "Which of the following is the most refined and restrictive cloud service model?",
+        options: ["PaaS", "IaaS", "SaaS", "CaaS"],
+        correct: "PaaS",
+    },
+    {
+        id: "21",
+        question: "Which of the following is not a property of cloud computing?",
+        options: ["virtualization", "composability", "scalability", "all of the mentioned"],
+        correct: "composability",
+    },
+    {
+        id: "22",
+        question: "How many phases are there in Cloud Computing Planning?",
+        options: ["1", "5", "3", "6"],
+        correct: "3",
+    },
+    {
+        id: "23",
+        question: "Which is the most essential concept related to Cloud computing?",
+        options: ["Abstraction", "Reliability", "Productivity", "All of the mentioned"],
+        correct: "Abstraction",
+    },
+    {
+        id: "24",
+        question: "In which of the following service models is the hardware virtualized in the cloud?",
+        options: ["NaaS", "PaaS", "CaaS", "IaaS"],
+        correct: "IaaS",
+    },
+    {
+        id: "25",
+        question: "Which of the following is the Virtual machine conversion cloud?",
+        options: ["Amazon CloudWatch", "AbiCloud", "BMC Cloud Computing Initiative", "None of the mentioned"],
+        correct: "BMC Cloud Computing Initiative",
+    },
+    {
+        id: "26",
+        question: "Which of the following is a workflow control and policy-based automation service by CA?",
+        options: ["CA Cloud Compose", "CA Cloud Insight", "CA Cloud Optimize", "CA Cloud Orchestrate"],
+        correct: "CA Cloud Orchestrate",
+    },
+    {
+        id: "27",
+        question: "An application that provides for transaction overflow in a reservation system is an example of ____________",
+        options: ["cloud bursting", "cloud provisioning", "cloud servicing", "all of the mentioned"],
+        correct: "cloud bursting",
+    },
+    {
+        id: "28",
+        question: "Which of the following sells a server referred to as Cloud Attached Storage?",
+        options: ["CEAT", "CTERA", "OCCI", "All of the mentioned"],
+        correct: "CTERA",
+    },
+    {
+        id: "29",
+        question: "The development of systems on a chip has enabled CTERA to create a scaled-down version of the CTERA server called the CTERA __________",
+        options: ["CloudPlug", "NextCloud", "CloudNext", "All of the mentioned"],
+        correct: "CloudPlug",
+    },
+];
+
+
+
+
+//Restart Quiz
+restart.addEventListener("click", () => {
+    initial();
+    displayContainer.classList.remove("hide");
+    scoreContainer.classList.add("hide");
+});
+
+
+moveBtn.addEventListener("click", () => {
+    window.location.href = "se_basic.html";
+});
+
+backBtn.addEventListener("click", () => {
+    window.history.back();
+});
+
+//Next Button
+nextBtn.addEventListener(
+    "click",
+    (displayNext = () => {
+        //increment questionCount
+        questionCount += 1;
+        //if last question
+        if (questionCount == quizArray.length) {
+            //hide question container and display score
+            displayContainer.classList.add("hide");
+            scoreContainer.classList.remove("hide");
+            //user score
+            userScore.innerHTML =
+                "Your score is " + scoreCount + " out of " + questionCount;
+            sendScoreToPHP(scoreCount);
+        } else {
+            //display questionCount
+            countOfQuestion.innerHTML =
+                questionCount + 1 + " of " + quizArray.length + " Question";
+            //display quiz
+            quizDisplay(questionCount);
+            count = 11;
+            clearInterval(countdown);
+            timerDisplay();
+        }
+    })
+);
+
+//Timer
+const timerDisplay = () => {
+    countdown = setInterval(() => {
+        count--;
+        timeLeft.innerHTML = `${count}s`;
+        if (count == 0) {
+            clearInterval(countdown);
+            displayNext();
+        }
+    }, 1000);
+};
+
+//Display quiz
+const quizDisplay = (questionCount) => {
+    let quizCards = document.querySelectorAll(".container-mid");
+    //Hide other cards
+    quizCards.forEach((card) => {
+        card.classList.add("hide");
+    });
+    //display current question card
+    quizCards[questionCount].classList.remove("hide");
+};
+
+//Quiz Creation
+function quizCreator() {
+    //randomly sort questions
+    quizArray.sort(() => Math.random() - 0.5);
+    //generate quiz
+    for (let i of quizArray) {
+        //randomly sort options
+        i.options.sort(() => Math.random() - 0.5);
+        //quiz card creation
+        let div = document.createElement("div");
+        div.classList.add("container-mid", "hide");
+        //question number
+        countOfQuestion.innerHTML = 1 + " of " + quizArray.length + " Question";
+        //question
+        let question_DIV = document.createElement("p");
+        question_DIV.classList.add("question");
+        question_DIV.innerHTML = i.question;
+        div.appendChild(question_DIV);
+        //options
+        div.innerHTML += `
+    <button class="option-div" onclick="checker(this)">${i.options[0]}</button>
+     <button class="option-div" onclick="checker(this)">${i.options[1]}</button>
+      <button class="option-div" onclick="checker(this)">${i.options[2]}</button>
+       <button class="option-div" onclick="checker(this)">${i.options[3]}</button>
+    `;
+        quizContainer.appendChild(div);
+    }
+}
+
+//Checker Function to check if option is correct or not
+function checker(userOption) {
+    let userSolution = userOption.innerText;
+    let question =
+        document.getElementsByClassName("container-mid")[questionCount];
+    let options = question.querySelectorAll(".option-div");
+
+    //if user clicked answer == correct option stored in object
+    if (userSolution === quizArray[questionCount].correct) {
+        userOption.classList.add("correct");
+        scoreCount++;
+    } else {
+        userOption.classList.add("incorrect");
+        //For marking the correct option
+        options.forEach((element) => {
+            if (element.innerText == quizArray[questionCount].correct) {
+                element.classList.add("correct");
+            }
+        });
+    }
+
+    //clear interval(stop timer)
+    clearInterval(countdown);
+    //disable all options
+    options.forEach((element) => {
+        element.disabled = true;
+    });
+}
+
+//initial setup
+function initial() {
+    quizContainer.innerHTML = "";
+    questionCount = 0;
+    scoreCount = 0;
+    count = 11;
+    clearInterval(countdown);
+    timerDisplay();
+    quizCreator();
+    quizDisplay(questionCount);
+}
+
+//when user click on start button
+startButton.addEventListener("click", () => {
+    startScreen.classList.add("hide");
+    displayContainer.classList.remove("hide");
+    initial();
+});
+
+//hide quiz and display start screen
+window.onload = () => {
+    startScreen.classList.remove("hide");
+    displayContainer.classList.add("hide");
+};
+    </script>
+</body>
+
+</html>
